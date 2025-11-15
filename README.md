@@ -88,7 +88,60 @@ uvicorn server:app --reload --port 8000
 python agent.py
 ```
 
+### 4. Run the Web Client
+
+The web interface is built using the [LiveKit Agent Starter React](https://github.com/livekit-examples/agent-starter-react) template.
+
+#### Installation
+
+1. **Clone the agent-starter-react repository:**
+   ```bash
+   git clone https://github.com/livekit-examples/agent-starter-react.git
+   cd agent-starter-react
+   ```
+
+   Alternatively, use the LiveKit CLI:
+   ```bash
+   lk app create --template agent-starter-react
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+
+   If you don't have pnpm installed:
+   ```bash
+   npm install -g pnpm
+   ```
+
+3. **Configure environment variables:**
+
+   Create a `.env.local` file in the root directory:
+   ```env
+   LIVEKIT_API_KEY=<your-livekit-api-key>
+   LIVEKIT_API_SECRET=<your-livekit-api-secret>
+   LIVEKIT_URL=<your-livekit-url>
+   ```
+
+   Use the same LiveKit credentials from your main agent `.env` file.
+
+4. **Start the development server:**
+   ```bash
+   pnpm dev
+   ```
+
+5. **Access the web interface:**
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+
 ## Usage
+
+**Note:** This is a demo project. Logical routing is not yet implemented, so you need to be explicit with your queries to help the agent understand your intent. Examples:
+- For knowledge base search: "Search the knowledge base for information about LiveKit agents"
+- For web search: "Search the web for recent LiveKit updates"
+- Instead of vague queries like "Tell me about agents", be specific about which tool you want to use
 
 The agent provides several function tools accessible through natural conversation:
 
