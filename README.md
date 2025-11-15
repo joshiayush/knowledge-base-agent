@@ -37,7 +37,9 @@ Utility script to convert Markdown documentation into a searchable vector databa
 - LiveKit account and API credentials
 - OpenAI API key
 - SerpAPI key (for web search)
-- HuggingFace embeddings model
+- HuggingFace access token (for embeddings model)
+- Cartesia API key (for text-to-speech)
+- Deepgram API key (for speech-to-text)
 
 ## Installation
 
@@ -65,6 +67,9 @@ LIVEKIT_API_KEY=<your-livekit-api-key>
 LIVEKIT_API_SECRET=<your-livekit-api-secret>
 OPENAI_API_KEY=<your-openai-api-key>
 SERP_API_KEY=<your-serpapi-key>
+HUGGINGFACEHUB_ACCESS_TOKEN=<your-huggingface-token>
+CARTESIA_API_KEY=<your-cartesia-api-key>
+DEEPGRAM_API_KEY=<your-deepgram-api-key>
 ```
 
 ## Setup
