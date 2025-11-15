@@ -43,8 +43,8 @@ Utility script to convert Markdown documentation into a searchable vector databa
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd kroolo-agent
+git clone git@github.com:joshiayush/knowledge-base-agent.git
+cd knowledge-base-agent
 ```
 
 2. Create a virtual environment:
