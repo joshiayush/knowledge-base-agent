@@ -1,6 +1,5 @@
 import httpx
 import os
-import aiohttp
 from pathlib import Path
 from typing import Annotated
 
@@ -103,7 +102,7 @@ class LiveKitLearningAgent(Agent):
         Returns formatted search results with titles, URLs, and snippets.
         """
         try:
-            async with aiohttp.ClientSession() as session:
+            async with httpx.AsyncClient() as client:
                 params = {
                     "api_key": os.getenv("SERP_API_KEY"),
                     "q": query,
@@ -111,30 +110,29 @@ class LiveKitLearningAgent(Agent):
                     "engine": "google",
                 }
 
-                async with session.get(
-                    "https://serpapi.com/search", params=params
-                ) as response:
-                    if response.status != 200:
-                        error_text = await response.text()
-                        return f"Error performing search: {error_text}"
+                response = await client.get("https://serpapi.com/search", params=params)
 
-                    data = await response.json()
+                if response.status_code != 200:
+                    error_text = response.text
+                    return f"Error performing search: {error_text}"
 
-                    results = []
+                data = response.json()
 
-                    if data.get("organic_results"):
-                        results.append("Search Results:\n")
-                        for result in data["organic_results"][:num_results]:
-                            title = result.get("title", "No title")
-                            snippet = result.get("snippet", "No description available")
+                results = []
 
-                            results.append(f"-  {title}")
-                            results.append(f"   {snippet}\n")
-                    else:
-                        results.append("No results found.")
+                if data.get("organic_results"):
+                    results.append("Search Results:\n")
+                    for result in data["organic_results"][:num_results]:
+                        title = result.get("title", "No title")
+                        snippet = result.get("snippet", "No description available")
 
-                    formatted_results = "\n".join(results)
-                    return formatted_results
+                        results.append(f"-  {title}")
+                        results.append(f"   {snippet}\n")
+                else:
+                    results.append("No results found.")
+
+                formatted_results = "\n".join(results)
+                return formatted_results
 
         except Exception as e:
             return f"I encountered an error while running a web search: {str(e)}"
@@ -166,13 +164,15 @@ class LiveKitLearningAgent(Agent):
             await ctx.session.say(
                 f"I've saved {saved_count} messages from our conversation to the database."
             )
+
+            return None
         except Exception as e:
-            await ctx.session.say(
+            return (
                 "I encountered an error while saving the conversation. Please try again."
             )
 
     @function_tool
-    async def get_previous_conversations(self, ctx: RunContext) -> None:
+    async def get_previous_conversations(self, ctx: RunContext) -> str:
         """Retrieve and summarize previous conversations from the database.
 
         Called when the user asks to see or hear about previous conversations.
@@ -181,15 +181,17 @@ class LiveKitLearningAgent(Agent):
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(f"{self.api_base}/conversation")
+
+                if response.status_code != 200:
+                    error_text = response.text
+                    return f"Error retrieving previous conversation: {error_text}"
+
                 data = response.json()
 
                 messages = data.get("messages", [])
 
                 if not messages:
-                    await ctx.session.say(
-                        "There are no previous conversations saved in the database."
-                    )
-                    return
+                    return "There are no previous conversations saved in the database."
 
                 # Build a summary of the conversation
                 conversation_text = "\n".join(
@@ -202,7 +204,7 @@ class LiveKitLearningAgent(Agent):
 
             return f"Previous conversation:\n{conversation_text}"
         except Exception as e:
-            await ctx.session.say(
+            return (
                 "I encountered an error while retrieving previous conversations. Please try again."
             )
 
@@ -234,6 +236,9 @@ async def entrypoint(ctx: JobContext):
 
 def prewarm(proc: JobProcess):
     proc.userdata["vad"] = silero.VAD.load()
+
+    # all-MiniLM-L6-v2: 384 dimensions, lightweight, good quality
+    # Trade-off: Speed + Size vs Accuracy
     proc.userdata["hf_embeddings"] = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
